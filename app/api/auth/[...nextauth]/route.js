@@ -7,20 +7,27 @@ export const authOptions = {
     providers: [
         CredentialsProvider({
             name: "credentials",
-            credentials: {
-                email: { label: "Email", type: "text" },
-                password: { label: "Password", type: "password" }
-            },
+            credentials: {},
 
             async authorize(credentials, req) {
+                if(!credentials) console.log("Error! Credentials are not present");
                 const { email, password } = credentials;
                 try {
-                    const user = await getUserByEmail(email);
-                    if (!user || Array.isArray(user) || 'error' in user) return null;
-    
-                    const passwordsMatch = await bcrypt.compare(password, user.password);
+                    let user = await getUserByEmail(email);
+
+                    console.log(user);
+
+                    if(Array.isArray(user)) user = user[0];
+                    console.log(user);
+
+                    if(!user) {
+                        console.log("No user found");
+                        return null;
+                    }
+
+                    const passwordsMatch = password === user.password;
                     if(!passwordsMatch) return null;
-    
+
                     return user;
                 } catch(error) {
                     console.log("Error: ", error);
@@ -34,7 +41,29 @@ export const authOptions = {
     },
     secret: process.env.NEXTAUTH_SECRET,
     pages: {
-        signIn: "/"
+        signIn: "/signin"
+    },
+    callbacks: {
+        async jwt({ token, user }) {
+            if (user) {
+                token.role = user.role;
+                token.id = user.id;
+                token.email = user.email;
+                token.approved = user.approved;
+                token.password = user.password;
+            }
+            return token;
+        },
+        async session({ session, token }) {
+            if (token && session?.user) {
+                session.user.role = token.role;
+                session.user.id = token.id;
+                session.user.email = token.email;
+                session.user.approved = token.approved;
+                session.user.password = token.password;
+            }
+            return session;
+        }
     }
 }
 
