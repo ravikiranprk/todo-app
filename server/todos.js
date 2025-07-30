@@ -36,17 +36,18 @@ export async function getTodosByUserId(id) {
 export async function createTodo(todo) {
     try {
         const newTodo = await db.insert(todos).values(todo);
-        return newTodo;
+        return { message: "Created todo successfully!" };
     } catch (error) {
         console.log(error);
-        return { error: "Failed to create a new user" }
+        return { message: "Failed to create a new user" }
     }
 }
 
 export async function updateTodo(id, data) {
     try {
-        const updatedTodo = await db.update(todos).set(data).where(eq(todos.id, id));
-        return updatedTodo;
+        const { newTitle, newDescription, newCompleted } = await data;
+        const updatedTodo = await db.update(todos).set({title: newTitle, description: newDescription, completed: newCompleted}).where(eq(todos.id, id));
+        return { message: "Updated todo successfully!" };
     } catch (error) {
         console.log(error);
         return { error: "Failed to update user" }
@@ -56,7 +57,7 @@ export async function updateTodo(id, data) {
 export async function deleteTodo(id) {
     try {
         const deletedTodo = await db.delete(todos).where(eq(todos.id, id));
-        return deletedTodo;
+        return { message: "Deleted todo successfully!" };
     } catch (error) {
         console.log(error);
         return { error: "Failed to delete user" }

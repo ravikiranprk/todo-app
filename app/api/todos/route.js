@@ -6,7 +6,7 @@ export async function GET() {
     const todos = await getAllTodos();
     return NextResponse.json(todos, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ error: "Failed to fetch todos" }, { status: 500 });
+    return NextResponse.json({ message: "Failed to fetch todos" }, { status: 500 });
   }
 }
 
@@ -15,10 +15,10 @@ export async function POST(request) {
     const data = await request.json();
     const todo = await createTodo(data);
     if (todo.error) {
-      return NextResponse.json(todo, { status: 400 });
+      return NextResponse.json({ message: "Error creating todo!" }, { status: 400 });
     }
-    return NextResponse.json(todo, { status: 201 });
+    return NextResponse.json({ message: "Todo created successfully!" }, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: "Failed to create todo" }, { status: 500 });
+    return NextResponse.json({ message: "Failed to create todo" }, { status: 500 });
   }
 }

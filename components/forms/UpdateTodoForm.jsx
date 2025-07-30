@@ -6,42 +6,28 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from "@/components/ui/label";
+import { updateTodo } from '@/server/todos';
 
-export default function UpdateTodoForm(){
+export default function UpdateTodoForm({ todoId, title, description, completed }){
     const { data: session } = useSession();
-    const [title, setTitle] = useState(initialTodo?.title || "");
-    const [description, setDescription] = useState(initialTodo?.description || "");
-    const [completed, setCompleted] = useState(initialTodo?.completed ? "true" : "false");
+    const [newTitle, setNewTitle] = useState(title);
+    const [newDescription, setNewDescription] = useState(description);
+    const [newCompleted, setNewCompleted] = useState(completed);
     const [error, setError] = useState("");
     const router = useRouter();
 
-    if (!session) {
-        if (typeof window !== "undefined") {
-            router.replace("/signin");
-        }
-        return null;
-    }
 
     async function handleSubmit(e) {
         e.preventDefault();
         setError("");
-        // Convert completed to boolean
-        let completedBool = false;
-        if (completed.toLowerCase() === "true") completedBool = true;
+
         try {
-            const res = await fetch(`/api/todos/${todoId}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    title,
-                    description,
-                    completed: completedBool
-                })
-            });
-            if (!res.ok) {
-                setError("Error updating todo");
-                return;
-            }
+            const res = await updateTodo(todoId, {
+                newTitle, newDescription, newCompleted
+            })
+
+            if(!res.status === 200) setError("Update failed!");
+            
             router.refresh();
             router.replace(`/dashboard/user/${session.user.id}`);
         } catch (err) {
@@ -51,7 +37,7 @@ export default function UpdateTodoForm(){
     }
 
     return (
-        <div>
+        <div className='flex flex-col justify-center items-center h-screen'>
             <h2 className="text-2xl font-bold text-center">Update Your Todo</h2>
             <form 
                 onSubmit={handleSubmit}
@@ -62,8 +48,8 @@ export default function UpdateTodoForm(){
                     <Input 
                         placeholder="Title" 
                         id="title"
-                        value={title}
-                        onChange={e => setTitle(e.target.value)}
+                        value={newTitle}
+                        onChange={e => setNewTitle(e.target.value)}
                     />
                 </div>
                 <div className="flex flex-col gap-2 mb-4">
@@ -71,8 +57,8 @@ export default function UpdateTodoForm(){
                     <Input 
                         placeholder="Description" 
                         id="description"
-                        value={description}
-                        onChange={e => setDescription(e.target.value)}
+                        value={newDescription}
+                        onChange={e => setNewDescription(e.target.value)}
                     />
                 </div>
                 <div className="flex flex-col gap-2 mb-4">
@@ -80,8 +66,8 @@ export default function UpdateTodoForm(){
                     <Input 
                         placeholder="Completed (true/false)" 
                         id="completed"
-                        value={completed}
-                        onChange={e => setCompleted(e.target.value)}
+                        value={newCompleted}
+                        onChange={e => setNewCompleted(e.target.value)}
                     />
                 </div>
                 {error && <p className="text-sm px-2 py-1 rounded-md bg-red-500 text-zinc-100">{error}</p>}

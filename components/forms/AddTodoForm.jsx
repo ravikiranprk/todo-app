@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 
 import { useSession } from 'next-auth/react';
+import { useState } from "react";
+import { createTodo } from "@/server/todos";
 
 export default function AddTodoForm() {
     const [title, setTitle] = useState("");
@@ -28,25 +30,16 @@ export default function AddTodoForm() {
             return;
         }
 
-        let completedBool = false;
-        if (completed.toLowerCase() === "true") completedBool = true;
         try {
             const todoData = {
                 title,
                 description,
-                completed: completedBool,
                 user_id: parseInt(userId, 10)
             };
-            const res = await fetch("/api/todos", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(todoData),
-            });
-            if (!res.ok) {
-                setError("Error creating todo");
-                return;
-            }
-            router.refresh();
+            const res = await createTodo(todoData);
+
+            let form = e.target;
+            form.reset();
             router.replace(`/dashboard/user/${userId}`);
         } catch (err) {
             setError("Error creating todo");
@@ -55,8 +48,8 @@ export default function AddTodoForm() {
     }
 
     return (
-        <div className="flex justify-center items-center h-screen p-10">
-            <h2 className="text-2xl font-bold text-center">Update Your Todo</h2>
+        <div className="flex flex-col justify-center items-center h-screen p-10">
+            <h2 className="text-2xl font-bold text-center">Add Your Todo</h2>
             <form 
                 onSubmit={handleSubmit}
                 className="border border-gray-800 rounded-xl p-10 mt-3"
